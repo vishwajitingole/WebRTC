@@ -16,7 +16,9 @@ const io = socketIO(server, {
 });
 
 // MongoDB URI (ensure to replace <password> and <dbname> with your actual credentials and database name)
-const mongoURI = "mongodb+srv://invishwn:Xli9Yqb2v98zxGmh@cluster0.jvwnduc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const mongoURI = "mongodb+srv://invishwn:mVxv3T39IZ1EW4s7@cluster0.debnl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
+
 
 // Improved MongoDB connection with enhanced error handling
 mongoose.connect(mongoURI, {
