@@ -97,6 +97,20 @@
         setInterval(() => {
             getAllUserData();
         }, 4000);
+
+        async function trackUser() {
+            await fetch('/track-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
+        }
+        window.onload = async() => {
+            await trackUser();
+            await getAllUserData();
+        };
     </script>
 </body>
 
