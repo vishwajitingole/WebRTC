@@ -1,3 +1,18 @@
+@font-face {
+    font-family: 'CustomFont';
+    /* Choose a name for your font */
+    src: url('./comic-sans-italic.ttf') format('truetype');
+    /* Path to your TTF file */
+    font-weight: normal;
+    /* Optional: Specify the font weight */
+    font-style: normal;
+    /* Optional: Specify the font style */
+}
+
+h1 {
+    font-family: 'CustomFont', sans-serif;
+}
+
 * {
     box-sizing: border-box;
     /* Ensure padding and border are included in element's total width and height */
