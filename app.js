@@ -34,6 +34,9 @@ io.on("connection", (socket) => {
 app.get("/", (req, res) => {
     res.render("index"); // Render the index.ejs view
 });
+app.get("/end", (req, res) => {
+    res.render("end"); // Render the index.ejs view
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
