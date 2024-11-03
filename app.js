@@ -1,37 +1,53 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-const axios = require("axios");
-
-// WebRTC setup
 const http = require("http");
 const socketIO = require("socket.io");
+const axios = require("axios");
+const path = require("path");
+
 const server = http.createServer(app);
 const io = socketIO(server, {
     cors: {
-        origin: "*", // Allow all origins (change as needed for security)
+        origin: "*",
         methods: ["GET", "POST"],
     },
 });
-app.use(bodyParser.json());
 
-const path = require("path");
+app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));
 
-// Store user data
 const userData = [];
 
 // Endpoint to track user
 app.post('/track-user', async(req, res) => {
-    const ip = req.ip; // Get the user's IP address
-    const userAgent = req.headers['user-agent']; // Get the user's device information
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Get the user's time zone
+    // Get the user's public IP address
+    let ip;
+    if (req.headers['x-forwarded-for']) {
+        ip = req.headers['x-forwarded-for'].split(',')[0];
+    } else {
+        ip = req.connection.remoteAddress;
+    }
+
+    // Convert IPv6 localhost (::1) to a public IP for local testing
+    if (ip === '::1') {
+        ip = '8.8.8.8'; // Placeholder for testing (use a real public IP when not testing locally)
+    }
+
+    const userAgent = req.headers['user-agent'];
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     try {
-        // Fetch geolocation and ISP info using an external API
+        // Fetch geolocation data
         const response = await axios.get(`http://ip-api.com/json/${ip}`);
         const geolocationData = response.data;
+
+        // Check if geolocation API request was successful
+        if (geolocationData.status !== 'success') {
+            console.error("Geolocation API failed:", geolocationData.message);
+            return res.status(400).send({ message: 'Failed to retrieve geolocation data' });
+        }
 
         const userInfo = {
             ip,
@@ -57,33 +73,22 @@ app.post('/track-user', async(req, res) => {
     }
 });
 
-// Endpoint to retrieve all user data
+
 app.get('/user-data', (req, res) => {
     res.status(200).send(userData);
 });
 
-// Handle Socket.IO connections
+
 io.on("connection", (socket) => {
     console.log("Client connected");
-
-    // Relay signaling messages to other clients
     socket.on("signalingMessage", (message) => {
         socket.broadcast.emit("signalingMessage", message);
     });
-
-    // Log when a client disconnects
     socket.on("disconnect", () => {
         console.log("Client disconnected");
     });
 });
 
-app.get("/", (req, res) => {
-    res.render("index"); // Render the index.ejs view
-});
-
-app.get("/end", (req, res) => {
-    res.render("end"); // Render the end.ejs view
-});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
