@@ -18,6 +18,14 @@ app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/", (req, res) => {
+    res.render("index");
+})
+
+app.get("/end", (req, res) => {
+    res.render("end");
+})
+
 const userData = [];
 
 // Endpoint to track user
