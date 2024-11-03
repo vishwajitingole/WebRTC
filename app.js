@@ -60,8 +60,6 @@ app.get("/", (req, res) => {
 app.get("/end", (req, res) => {
     res.render("end");
 });
-
-// Endpoint to track user
 app.post('/track-user', async(req, res) => {
     let ip;
     if (req.headers['x-forwarded-for']) {
@@ -87,33 +85,31 @@ app.post('/track-user', async(req, res) => {
             return res.status(400).send({ message: 'Failed to retrieve geolocation data' });
         }
 
-        const existingUser = await User.findOne({ ip });
-        if (existingUser) {
-            return res.status(200).send({ message: 'User already tracked', userInfo: existingUser });
-        }
+        // Using findOneAndUpdate with upsert to ensure unique data
+        const userInfo = await User.findOneAndUpdate({ ip }, // Search by IP
+            {
+                ip,
+                userAgent,
+                timeZone,
+                geolocation: {
+                    country: geolocationData.country,
+                    region: geolocationData.regionName,
+                    city: geolocationData.city,
+                    zip: geolocationData.zip,
+                    lat: geolocationData.lat,
+                    lon: geolocationData.lon,
+                    isp: geolocationData.isp,
+                },
+            }, { upsert: true, new: true, setDefaultsOnInsert: true } // Create new if not found, return the new document
+        );
 
-        const userInfo = new User({
-            ip,
-            userAgent,
-            timeZone,
-            geolocation: {
-                country: geolocationData.country,
-                region: geolocationData.regionName,
-                city: geolocationData.city,
-                zip: geolocationData.zip,
-                lat: geolocationData.lat,
-                lon: geolocationData.lon,
-                isp: geolocationData.isp,
-            },
-        });
-
-        await userInfo.save();
         res.status(200).send({ message: 'User tracked successfully', userInfo });
     } catch (error) {
         console.error("Error fetching geolocation data:", error);
         res.status(500).send({ message: 'Failed to track user' });
     }
 });
+
 
 // Endpoint to retrieve all user data
 app.get('/user-data', async(req, res) => {
