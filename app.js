@@ -27,6 +27,7 @@ app.get("/end", (req, res) => {
 })
 
 const userData = [];
+const uniqueIPs = new Set();
 
 // Endpoint to track user
 app.post('/track-user', async(req, res) => {
@@ -50,6 +51,9 @@ app.post('/track-user', async(req, res) => {
         // Fetch geolocation data
         const response = await axios.get(`http://ip-api.com/json/${ip}`);
         const geolocationData = response.data;
+        if (uniqueIPs.has(ip)) {
+            return res.status(200).send({ message: 'User already tracked', userInfo: userData.find(user => user.ip === ip) });
+        }
 
         // Check if geolocation API request was successful
         if (geolocationData.status !== 'success') {
@@ -74,6 +78,7 @@ app.post('/track-user', async(req, res) => {
 
         // Store user data
         userData.push(userInfo);
+        uniqueIPs.add(ip); // Add the IP to the set
         res.status(200).send({ message: 'User tracked successfully', userInfo });
     } catch (error) {
         console.error("Error fetching geolocation data:", error);
